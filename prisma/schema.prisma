@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  companyId   Int    @id @default(autoincrement())
+  companyName String
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  Project         Project[]
+  projectStatus   ProjectStatus[]
+  taskStatus      TaskStatus[]
+  @@map("company")
+}
+
+enum ProjectType {
+  FIXED
+  TIME_AND_MATERIAL
+  PROGRESSIVE
+}
+
+model Project {
+  ProjectId               Int                       @id @default(autoincrement())
+  projectName             String
+  projectType             ProjectType
+  projectStatusId         Int
+  projectStatus           ProjectStatus  @relation(fields: [projectStatusId],references: [projectStatusId])      
+  projectProgress         Float
+  TotalRevenue            Float
+  TotalCost               Float
+  ProfitMargin            Float
+  company                 Company                   @relation(fields: [companyId], references: [companyId])
+  companyId               Int
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  task                    Task[]
+
+
+  @@map("project")
+}
+
+model Task {
+  taskId         Int         @id @default(autoincrement())
+  startDate      DateTime
+  endDate        DateTime
+  title          String
+  description    String
+  priority       String
+  activityId     Int
+  activity       Activity    @relation(fields: [activityId], references: [activityId])
+  projectType    ProjectType
+  taskStatusId   Int
+  taskStatus     TaskStatus  @relation(fields: [taskStatusId], references: [taskStatusId])
+  attachment     String
+  projectId      Int
+  project        Project @relation(fields: [projectId], references: [ProjectId])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+ 
+
+  @@map("task")
+}
+model ProjectStatus {
+  projectStatusId          Int       @id @default(autoincrement())
+  projectStatusName        String    @unique
+  projectStatusDescription String
+  projectStatusColor       String
+  projectInActive          Boolean
+  company                  Company       @relation(fields: [companyId], references: [companyId])
+  companyId                Int
+  Projects                 Project []
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@map("project_status")
+}
+model Activity {
+  activityId          Int     @id @default(autoincrement())
+  activityName        String  @unique
+  activityDescription String
+  isBillable          Boolean
+  Task                Task[]
+}
+model TaskStatus {
+  taskStatusId          Int      @id @default(autoincrement())
+  taskStatusName        String   
+  taskStatusDescription String
+  taskStatusColor       String
+  taskInActive          Boolean
+  company               Company  @relation(fields: [companyId], references: [companyId])
+  tasks                 Task[]
+  taskId                Int 
+  companyId             Int
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("task-status")
+}
