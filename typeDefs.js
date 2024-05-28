@@ -2,6 +2,7 @@ const { gql } = require('apollo-server');
 
 const typeDefs = gql`
        scalar DateTime
+        scalar Upload
 
        type Query{
         projects:[Project!]!
@@ -49,6 +50,7 @@ type Project{
     createdAt: DateTime!
     updatedAt: DateTime!
     task: [Task]
+    taskStatus: [TaskStatus]
 }
 
 

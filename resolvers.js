@@ -1,9 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const { parse } = require('graphql');
 const { parseInt } = require('lodash');
+const { GraphQLUpload } = require('graphql-upload');
 const prisma = new PrismaClient()
 
 const resolvers = {
+
+    Upload: GraphQLUpload,
 
     Query:{
         projects:async()=>{
@@ -214,7 +217,7 @@ const resolvers = {
     // Project: {
     //     task: async (parent) => {
     //         try{
-    //             return await prisma.task.findUnique({
+    //             return await prisma.task.findMany({
     //                 where: {
     //                     projectId: parent.projectId
     //                 }
@@ -341,7 +344,8 @@ const resolvers = {
             console.error('Error to create taskstatus',error)
             throw new Error('Failed to create taskstatus')
         }
-    }
-    }
+    },
+    
+  },
 }
 module.exports = resolvers
