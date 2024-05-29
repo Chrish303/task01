@@ -1,5 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
-const { parse } = require('graphql');
+const { createReadStream, filename, mimetype, encoding } = require('graphql-upload');
+const fs = require('fs');
+const path = require('path');
 const { parseInt } = require('lodash');
 const { GraphQLUpload } = require('graphql-upload');
 const prisma = new PrismaClient()
@@ -7,6 +9,8 @@ const prisma = new PrismaClient()
 const resolvers = {
 
     Upload: GraphQLUpload,
+
+    
 
     Query:{
         projects:async()=>{
@@ -128,6 +132,8 @@ const resolvers = {
             }
         }
     },
+
+
     
     Company: {
         projects: async (parent) => {
@@ -241,6 +247,8 @@ const resolvers = {
     //     }
     // },
 
+  
+
     Mutation:{
         createProject:async(_,{ projectName, projectType, projectProgress, TotalRevenue, TotalCost, ProfitMargin, companyId,projectStatusId })=>{
             try{
@@ -306,27 +314,27 @@ const resolvers = {
             throw new Error('Failed to create project status')
         }
     },
-    createTask:async(_,{ startDate, endDate, title, description, priority,  projectType, attachment, activityId, taskStatusId,projectId })=>{
-        try{
-            const createTask = await prisma.task.create({
-                data:{  
-                    startDate:startDate,
-                    endDate:endDate,
-                    title:title,
-                    description:description,
-                    priority:priority,
-                    projectType:projectType,
-                    attachment:attachment,
-                    activityId:parseInt(activityId),
-                    taskStatusId:parseInt(taskStatusId),
-                    projectId:parseInt(projectId)
-                }
-        });return createTask
-        }catch(error){
-            console.error('Error to create task',error)
-            throw new Error('Failed to create task')
-        }
-    },
+    // createTask:async(_,{ startDate, endDate, title, description, priority,  projectType, attachment, activityId, taskStatusId,projectId })=>{
+    //     try{
+    //         const createTask = await prisma.task.create({
+    //             data:{  
+    //                 startDate:startDate,
+    //                 endDate:endDate,
+    //                 title:title,
+    //                 description:description,
+    //                 priority:priority,
+    //                 projectType:projectType,
+    //                 attachment:attachment,
+    //                 activityId:parseInt(activityId),
+    //                 taskStatusId:parseInt(taskStatusId),
+    //                 projectId:parseInt(projectId)
+    //             }
+    //     });return createTask
+    //     }catch(error){
+    //         console.error('Error to create task',error)
+    //         throw new Error('Failed to create task')
+    //     }
+    // },
     createTaskstatus:async(_,{ taskStatusName, taskStatusDescription,taskStatusColor, taskInActive, taskId, companyId })=>{
         try{
             const createTaskStatus = await prisma.taskStatus.create({
@@ -345,7 +353,45 @@ const resolvers = {
             throw new Error('Failed to create taskstatus')
         }
     },
-    
+
+    createTask: async (_, { startDate, endDate, title, description, priority, projectType, attachment, activityId, taskStatusId, projectId }) => {
+        try {
+          // Extract file details from the attachment argument
+          const { createReadStream, filename } = await attachment;
+  
+          // Create a writable stream for the file
+          const stream = createReadStream();
+          const filePath = path.join(__dirname, 'uploads', filename);
+          const writeStream = fs.createWriteStream(filePath);
+           // Pipe the file stream to the write stream
+          await new Promise((resolve, reject) => {
+            stream.pipe(writeStream)
+              .on('finish', resolve)
+              .on('error', reject);
+          });
+          // Create a new task with the file path
+          const newTask = {
+            startDate,
+            endDate,
+            title,
+            description,
+            priority,
+            projectType,
+            attachment: filePath, // Assuming filePath is the path where the file is saved
+            activityId:parseInt(activityId),
+            taskStatusId:parseInt(taskStatusId),
+            projectId:parseInt(projectId)
+          };
+  
+          // Save the new task to the database
+          const createdTask = await prisma.task.create({ data: newTask });
+          return createdTask;
+        } catch (error) {
+          console.error('Error creating task', error);
+          throw new Error('Failed to create task');
+        }
+      },
   },
 }
+
 module.exports = resolvers

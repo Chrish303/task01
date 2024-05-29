@@ -1,19 +1,21 @@
-const { ApolloServer } = require('apollo-server');
-const typeDefs = require('./typeDefs')
+const express = require('express');
+const { ApolloServer } = require('apollo-server-express');
+const { graphqlUploadExpress } = require('graphql-upload');
+const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
+const app = express();
+app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
-
-const app = new ApolloServer({
-    typeDefs,
-    resolvers,
-    uploads: {
-        maxFileSize: 10 * 1024 * 1024, // 10 MB
-      },
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
 });
 
+server.start().then(() => {
+  server.applyMiddleware({ app });
 
-
-app.listen().then(() => {
-    console.log('🚀...server runing at 4000...........🔥')
-})
+  app.listen({ port: 4000 }, () =>
+    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+  );
+});

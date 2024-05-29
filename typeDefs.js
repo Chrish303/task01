@@ -120,7 +120,9 @@ type Mutation {
 
     createTaskstatus(taskStatusName:String!, taskStatusDescription:String!, taskStatusColor:String!, taskInActive:Boolean!, taskId:ID!, companyId:ID!):TaskStatus!
 
-    createTask(startDate:DateTime!, endDate:DateTime!, title:String!, description:String!, priority:String!, projectType: ProjectType, attachment:String!, activityId:ID!, taskStatusId:ID!, projectId:ID! ):Task!
+    # createTask(startDate:DateTime!, endDate:DateTime!, title:String!, description:String!, priority:String!, projectType: ProjectType, attachment:String!, activityId:ID!, taskStatusId:ID!, projectId:ID! ):Task!
+
+  createTask(startDate: DateTime!, endDate: DateTime!, title: String!, description: String!, priority: String!, projectType: ProjectType, attachment: Upload!, activityId: ID!, taskStatusId: ID!, projectId: ID!): Task!
 }
 `
 
